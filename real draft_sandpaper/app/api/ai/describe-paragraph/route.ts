@@ -29,3 +29,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '묘사 생성 실패', detail: String(e) }, { status: 500 });
   }
 }
+export {};

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     // 프롬프트 구성
     let context = `에피소드 제목: ${episode.title}\n`;
     if (episodeSummary) context += `에피소드 요약: ${episodeSummary}\n`;
-    context += `에피소드 전체 문단:\n${episode.paragraphs.map((p: Paragraph, i: number) => `${i+1}. ${p.content}`).join('\n')}\n`;
+    context += `에피소드 전체 문단:\n${(episode.paragraphs as Paragraph[]).map((p, i) => `${i+1}. ${p.content}`).join('\n')}\n`;
     if (relatedEpisodes && relatedEpisodes.length > 0) {
       context += `\n참고할 수 있는 기존 에피소드와 요약:\n`;
       for (const ep of relatedEpisodes) {
