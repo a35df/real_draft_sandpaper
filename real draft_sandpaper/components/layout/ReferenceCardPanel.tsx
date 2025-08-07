@@ -1,6 +1,7 @@
 'use client';
 
 import SidePanel from './SidePanel';
+import { useUIStore } from '@/lib/uiStore';
 import { useCardStore } from '@/lib/store';
 import StackedCardView from '../ui/StackedCardView';
 import { Pin, Archive, Undo2 } from 'lucide-react';
@@ -64,9 +65,17 @@ const ReferenceCardPanel = () => {
   });
 
   const [showHold, setShowHold] = useState(false);
+  const openPanel = useUIStore(state => state.openPanel);
+  const togglePanel = useUIStore(state => state.togglePanel);
 
+  const isOpen = openPanel === 'reference';
   return (
-    <SidePanel position="right">
+    <SidePanel
+      position="right"
+      isOpen={isOpen}
+      onOpen={() => togglePanel('reference')}
+      onClose={() => togglePanel('reference')}
+    >
       <h2 className="text-2xl font-bold text-white mb-6">참조 카드 보관함</h2>
       <div 
         className="space-y-3 pb-20"

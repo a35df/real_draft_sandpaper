@@ -14,9 +14,10 @@ interface ParagraphBlockProps {
   autoFocus?: boolean;
   autoFocusNext?: boolean;
   onFocused?: () => void;
+  onAddDescription?: () => void; // 묘사 추가 핸들러
 }
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // window에 __tiptap_editors 타입 선언 (TS 오류 방지)
 declare global {
@@ -24,7 +25,7 @@ declare global {
     __tiptap_editors?: any[];
   }
 }
-const ParagraphBlock = ({ paragraph, isEditable, onGenerateCards, onDrop, isCardDragging, onAddParagraph, autoFocus, autoFocusNext, onFocused }: ParagraphBlockProps) => {
+const ParagraphBlock = ({ paragraph, isEditable, onGenerateCards, onDrop, isCardDragging, onAddParagraph, autoFocus, autoFocusNext, onFocused, onAddDescription }: ParagraphBlockProps) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content: paragraph.content,
@@ -80,15 +81,45 @@ const ParagraphBlock = ({ paragraph, isEditable, onGenerateCards, onDrop, isCard
     }
   }, [autoFocusNext, editor, isEditable]);
 
+
   const dragControls = useDragControls();
   const x = useMotionValue(0);
   const backgroundOpacity = useTransform(x, [0, 200], [0, 0.7]);
   const iconOpacity = useTransform(x, [100, 200], [0, 1]);
 
+  // 롱프레스 관련
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDragging.current = false;
+    startX.current = e.clientX;
+    if (longPressTimeout.current) clearTimeout(longPressTimeout.current);
+    longPressTimeout.current = setTimeout(() => {
+      // x 이동량이 거의 없고, 드래그 중이 아닐 때만 커서 진입
+      if (!isDragging.current && Math.abs(x.get()) < 10 && editor && isEditable) {
+        editor.commands.focus('end');
+      }
+    }, 500); // 500ms 롱프레스
+  };
+
+  const handlePointerUp = () => {
+    if (longPressTimeout.current) clearTimeout(longPressTimeout.current);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (Math.abs(e.clientX - startX.current) > 10) {
+      isDragging.current = true;
+      if (longPressTimeout.current) clearTimeout(longPressTimeout.current);
+    }
+  };
 
   const handleDragEnd = (event: any, info: { offset: { x: number; y: number } }) => {
     if (info.offset.x > 200) {
-      onGenerateCards();
+      onGenerateCards(); // 오른쪽 스와이프: 자료 조사
+    } else if (info.offset.x < -200 && typeof onAddDescription === 'function') {
+      onAddDescription(); // 왼쪽 스와이프: 묘사 추가
     }
   };
 
@@ -103,6 +134,9 @@ const ParagraphBlock = ({ paragraph, isEditable, onGenerateCards, onDrop, isCard
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={handleDragEnd}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
       >
         <motion.div
           className="absolute inset-0 bg-indigo-600 rounded-md pointer-events-none"

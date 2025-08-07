@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>등장인물 이름 변경기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>등장인물 이름 변경기</h1>
+        <p>아래 텍스트 상자에 소설 내용을 붙여넣고 '등장인물 분석하기' 버튼을 누르세요.</p>
+        
+        <form id="novel-form">
+            <textarea name="novel_text" id="novel_text" rows="15" placeholder="여기에 소설 내용을 붙여넣으세요..."></textarea>
+            <button type="submit">등장인물 분석하기</button>
+        </form>
+
+        <div id="processing-status" style="display: none;">
+            <h2>처리 중...</h2>
+            <div class="progress-bar">
+                <div id="progress" class="progress-bar-inner"></div>
+            </div>
+            <p id="progress-text">0%</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('novel-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const novelText = document.getElementById('novel_text').value;
+            if (!novelText) {
+                alert('소설 내용을 입력해주세요.');
+                return;
+            }
+
+            // UI 변경
+            document.getElementById('novel-form').style.display = 'none';
+            const statusDiv = document.getElementById('processing-status');
+            statusDiv.style.display = 'block';
+            const progressBar = document.getElementById('progress');
+            const progressText = document.getElementById('progress-text');
+
+            try {
+                const chunkSize = 8000; // 조금 더 작은 크기로 설정
+                const chunks = [];
+                for (let i = 0; i < novelText.length; i += chunkSize) {
+                    chunks.push(novelText.substring(i, i + chunkSize));
+                }
+
+                // 각 청크를 순차적으로 처리
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+                    const formData = new FormData();
+                    formData.append('novel_text', chunk);
+                    formData.append('is_chunk', 'true');
+                    formData.append('chunk_index', i.toString());
+                    formData.append('total_chunks', chunks.length.toString());
+
+                    const response = await fetch('/process', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('청크 처리 중 서버 오류');
+                    }
+                    
+                    const progressPercentage = Math.round(((i + 1) / chunks.length) * 100);
+                    progressBar.style.width = progressPercentage + '%';
+                    progressText.textContent = progressPercentage + '%';
+                    
+                    // 마지막 청크인 경우 결과 페이지로 자동 리다이렉트
+                    if (i === chunks.length - 1) {
+                        const resultHtml = await response.text();
+                        document.open();
+                        document.write(resultHtml);
+                        document.close();
+                        return;
+                    }
+                }
+
+            } catch (error) {
+                console.error('처리 중 오류 발생:', error);
+                alert('처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+                document.getElementById('novel-form').style.display = 'block';
+                statusDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

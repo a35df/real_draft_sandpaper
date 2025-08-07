@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이름 변경 목록 확인</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>이름 변경 목록 확인</h1>
+        <p>LLM이 다음과 같이 이름 변경을 제안했습니다. 새 이름을 수정하거나, 비워두면 해당 이름은 변경되지 않습니다.</p>
+        <form action="/apply" method="post">
+            <div class="name-map">
+                {% for old_name, new_name in name_map.items() %}
+                <div class="name-pair">
+                    <label for="{{ old_name }}">{{ old_name }}</label>
+                    <span>&rarr;</span>
+                    <input type="text" name="{{ old_name }}" value="{{ new_name }}">
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit">변경 적용하기</button>
+        </form>
+    </div>
+</body>
+</html>

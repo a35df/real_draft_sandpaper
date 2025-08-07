@@ -1,0 +1,25 @@
+Selenium 오류: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=138.0.7204.184)
+Stacktrace:
+0   undetected_chromedriver             0x0000000100e8ab88 undetected_chromedriver + 5860232
+1   undetected_chromedriver             0x0000000100e8212a undetected_chromedriver + 5824810
+2   undetected_chromedriver             0x0000000100959e20 undetected_chromedriver + 417312
+3   undetected_chromedriver             0x000000010092e7c0 undetected_chromedriver + 239552
+4   undetected_chromedriver             0x00000001009d9eb8 undetected_chromedriver + 941752
+5   undetected_chromedriver             0x00000001009f8b0c undetected_chromedriver + 1067788
+6   undetected_chromedriver             0x00000001009d1ac3 undetected_chromedriver + 907971
+7   undetected_chromedriver             0x000000010099e107 undetected_chromedriver + 696583
+8   undetected_chromedriver             0x000000010099ed71 undetected_chromedriver + 699761
+9   undetected_chromedriver             0x0000000100e48ca0 undetected_chromedriver + 5590176
+10  undetected_chromedriver             0x0000000100e4ccf9 undetected_chromedriver + 5606649
+11  undetected_chromedriver             0x0000000100e240b6 undetected_chromedriver + 5439670
+12  undetected_chromedriver             0x0000000100e4d66f undetected_chromedriver + 5609071
+13  undetected_chromedriver             0x0000000100e12e64 undetected_chromedriver + 5369444
+14  undetected_chromedriver             0x0000000100e6f688 undetected_chromedriver + 5748360
+15  undetected_chromedriver             0x0000000100e6f850 undetected_chromedriver + 5748816
+16  undetected_chromedriver             0x0000000100e81cc1 undetected_chromedriver + 5823681
+17  libsystem_pthread.dylib             0x00007ff810602e59 _pthread_start + 115
+18  libsystem_pthread.dylib             0x00007ff8105fe857 thread_start + 15
+
+URL: https://booktoki468.com/novel/4614363?stx=%EA%B0%9C%EA%B3%BC%EC%B2%9C%EC%84%A0&sst=as_update&sod=desc&book=%EC%99%84%EA%B2%B0%EC%86%8C%EC%84%A4&spage=1

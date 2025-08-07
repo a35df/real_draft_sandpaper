@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Archive } from 'lucide-react';
 import SidePanel from './SidePanel';
+import { useUIStore } from '@/lib/uiStore';
 import { Episode } from '@/types';
 import Link from 'next/link';
 import StackedCardView from '../ui/StackedCardView';
@@ -58,10 +59,19 @@ const EpisodeListPanel = () => {
   const heldEpisodes: EpisodeListItem[] = [];
 
   // ...existing code...
-  const [isHoldZoneHovered, setIsHoldZoneHovered] = useState(false);
 
+  const [isHoldZoneHovered, setIsHoldZoneHovered] = useState(false);
+  const openPanel = useUIStore(state => state.openPanel);
+  const togglePanel = useUIStore(state => state.togglePanel);
+
+  const isOpen = openPanel === 'episode';
   return (
-    <SidePanel position="left">
+    <SidePanel
+      position="left"
+      isOpen={isOpen}
+      onOpen={() => togglePanel('episode')}
+      onClose={() => togglePanel('episode')}
+    >
       <h2 className="text-2xl font-bold text-white mb-6">에피소드 목록</h2>
       <div className="space-y-3 pb-20">
         {isLoading ? (

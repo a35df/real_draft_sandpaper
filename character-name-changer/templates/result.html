@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>변경 완료 - 등장인물 이름 변경기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>등장인물 이름 변경 완료</h1>
+        <p>이름이 변경된 소설 내용입니다.</p>
+        
+        <div class="result-box">
+            <h2>변경된 소설</h2>
+            <div class="novel-text">{{ final_text|safe }}</div>
+        </div>
+        
+        <div class="actions">
+            <a href="{{ url_for('index') }}" class="btn">새로운 소설 분석하기</a>
+        </div>
+    </div>
+</body>
+</html>

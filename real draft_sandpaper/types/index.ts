@@ -25,7 +25,7 @@ export interface Episode {
  * Represents an AI-generated reference card.
  */
 export interface ReferenceCard {
-  id:string;
+  id: string;
   title: string;
   summary: string;
   isPinned: boolean;
@@ -33,4 +33,9 @@ export interface ReferenceCard {
   isInHold: boolean;
   createdAt: Date;
   updatedAt: Date;
+  rawContext?: {
+    documentSnippets?: { filename: string; snippet: string }[];
+    webResults?: { title: string; url: string; snippet: string }[];
+    allEpisodes?: { title: string; summary: string }[];
+  };
 }

@@ -189,12 +189,36 @@ const EpisodeEditor = ({ initialEpisode, isNew = false }: EpisodeEditorProps) =>
     setReferenceCards([]); // 기존 카드 초기화
 
     try {
+      // 1. 모든 에피소드/요약
+      const episodesRes = await fetch('/api/episodes');
+      const allEpisodes = episodesRes.ok ? await episodesRes.json() : [];
+
+      // 2. 문서 검색 (문단 내용 기반)
+      const docSearchRes = await fetch('/api/documents/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: paragraph.content })
+      });
+      const docSearch = docSearchRes.ok ? await docSearchRes.json() : { results: [] };
+
+      // 3. 웹 검색 (문단 내용 기반)
+      const webSearchRes = await fetch('/api/ai/web-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: paragraph.content })
+      });
+      const webSearch = webSearchRes.ok ? await webSearchRes.json() : { results: [] };
+
+      // 4. 카드 생성 요청
       const response = await fetch('/api/ai/generate-cards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           episodeContext: episode,
           targetParagraph: paragraph,
+          allEpisodes,
+          documentSnippets: docSearch.results,
+          webResults: webSearch.results,
         }),
       });
 
@@ -210,6 +234,11 @@ const EpisodeEditor = ({ initialEpisode, isNew = false }: EpisodeEditorProps) =>
         isPinned: false,
         group: null,
         isInHold: false,
+        rawContext: {
+          documentSnippets: docSearch.results,
+          webResults: webSearch.results,
+          allEpisodes,
+        },
       }));
 
       setReferenceCards(formattedCards);
@@ -238,7 +267,11 @@ const EpisodeEditor = ({ initialEpisode, isNew = false }: EpisodeEditorProps) =>
       const response = await fetch('/api/ai/rewrite-paragraph', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetParagraph, referenceCard: draggedCard }),
+        body: JSON.stringify({
+          targetParagraph,
+          referenceCard: draggedCard,
+          rawContext: draggedCard.rawContext || {},
+        }),
       });
 
       if (!response.ok) {
@@ -384,22 +417,59 @@ const EpisodeEditor = ({ initialEpisode, isNew = false }: EpisodeEditorProps) =>
         onReorder={handleParagraphReorder}
         className="space-y-4"
       >
-        {episode.paragraphs
-          .sort((a, b) => a.order - b.order)
-          .map((p, idx, arr) => (
-            <ParagraphBlock
-              key={p.id}
-              paragraph={p}
-              isEditable={p.id === lastParagraphId}
-              autoFocus={shouldFocusFirst && idx === 0}
-              autoFocusNext={focusNextId === p.id}
-              onGenerateCards={() => handleGenerateReference(p)}
-              onDrop={() => handleRewriteParagraph(p)}
-              isCardDragging={!!draggedCard}
-              onAddParagraph={() => handleAddParagraph(p.id)}
-              onFocused={() => { if (focusNextId === p.id) setFocusNextId(null); }}
-            />
-          ))}
+        {(() => {
+          // 묘사 확장(왼쪽 스와이프) 핸들러: 해당 문단을 AI가 확장한 묘사로 교체
+          const handleAddDescription = async (paragraphId: string) => {
+            const target = episode.paragraphs.find(p => p.id === paragraphId);
+            if (!target) return;
+            setIsGenerating(true);
+            try {
+              const res = await fetch('/api/ai/describe-and-rewrite-paragraph', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  paragraph: target,
+                  episode: { title: episode.title, paragraphs: episode.paragraphs },
+                  episodeSummary: episode.summary,
+                  // relatedEpisodes: [] // 추후 확장
+                }),
+              });
+              const data = await res.json();
+              if (data.rewritten) {
+                setEpisode(prev => ({
+                  ...prev,
+                  paragraphs: prev.paragraphs.map(p =>
+                    p.id === paragraphId ? { ...p, content: data.rewritten } : p
+                  ),
+                  updatedAt: new Date(),
+                }));
+                setIsSaved(false);
+              }
+            } catch (e) {
+              // TODO: 에러 토스트 등 UI
+              console.error('묘사 확장 실패', e);
+            } finally {
+              setIsGenerating(false);
+            }
+          };
+          return episode.paragraphs
+            .sort((a, b) => a.order - b.order)
+            .map((p, idx, arr) => (
+              <ParagraphBlock
+                key={p.id}
+                paragraph={p}
+                isEditable={p.id === lastParagraphId}
+                autoFocus={shouldFocusFirst && idx === 0}
+                autoFocusNext={focusNextId === p.id}
+                onGenerateCards={() => handleGenerateReference(p)}
+                onDrop={() => handleRewriteParagraph(p)}
+                isCardDragging={!!draggedCard}
+                onAddParagraph={() => handleAddParagraph(p.id)}
+                onFocused={() => { if (focusNextId === p.id) setFocusNextId(null); }}
+                onAddDescription={() => handleAddDescription(p.id)}
+              />
+            ));
+        })()}
       </Reorder.Group>
       {!isSaved && (
         <div className="fixed bottom-8 right-8 z-50">
