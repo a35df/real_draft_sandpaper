@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     // 프롬프트에 모든 맥락, 문서, 웹 결과 포함
     let prompt = `웹소설 작가의 AI 어시스턴트로서, 아래 맥락과 자료를 참고해 6개의 참조 카드를 생성해줘.\n`;
     prompt += `\n[에피소드 제목]\n${episodeContext.title}`;
-    prompt += `\n[에피소드 전체 문단]\n${episodeContext.paragraphs.map(p => p.content).join('\n')}`;
+    prompt += `\n[에피소드 전체 문단]\n${episodeContext.paragraphs.map((p: Paragraph) => p.content).join('\n')}`;
     if (allEpisodes) {
       prompt += `\n[모든 에피소드 요약]\n`;
       for (const ep of allEpisodes) {
